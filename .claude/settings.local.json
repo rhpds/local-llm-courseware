@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp *)",
+      "Bash(claude-work mcp *)",
+      "Bash(claude-personal mcp *)",
+      "Bash(find ~/.claude* -type f -mmin -120)",
+      "Bash(env)",
+      "Bash(xargs find *)",
+      "Bash(git -C /Users/joshuadisraeli/repos/local-llm-courseware status)",
+      "Bash(git *)"
+    ]
+  }
+}

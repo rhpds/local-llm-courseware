@@ -1,0 +1,15 @@
+.DS_Store
+.superpowers/
+*.swp
+*.swo
+*~
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.env
+*.log
+node_modules/
+.venv/
+venv/
