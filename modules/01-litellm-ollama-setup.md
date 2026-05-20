@@ -350,7 +350,7 @@ cat > ~/.local/bin/litellm-proxy << 'LAUNCHER'
 #!/usr/bin/env zsh
 # LiteLLM proxy launcher -- local Ollama backend only
 source ~/.config/litellm/.env
-exec uv tool run --from "litellm>=1.83" litellm \
+exec uv tool run --from "litellm[proxy]>=1.83" litellm \
   --config ~/.config/litellm/config.yaml \
   --host 127.0.0.1 \
   --port 4000
