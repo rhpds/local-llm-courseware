@@ -9,4 +9,5 @@ antora:
   name: "main"
 tabs:
   - name: Terminal
-    type: 'terminal'
+    path: '/terminal/'
+    port: '443'
