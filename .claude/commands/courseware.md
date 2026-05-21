@@ -37,6 +37,15 @@ Print the catalog using markdown (NOT inside a code block).
 ### Setup & Foundation
 `01`  LiteLLM + Ollama Setup . 20 min
 
+### Working with Local Models
+`02`  System Prompts and Temperature . 10 min
+`03`  Structured Output for Automation . 10 min
+
+### Applied Patterns
+`04`  RAG: Chat with Your Docs . 15 min
+`05`  Tool Use and Function Calling . 10 min
+`06`  Build and Deploy an MCP Server . 15 min
+
 ## Footer
 
 After the catalog, print:
@@ -59,3 +68,8 @@ When the user picks a module, tell them to run the corresponding command:
 | Module | Command |
 |--------|---------|
 | 01 | `/learn-01-litellm-ollama-setup` |
+| 02 | `/learn-02-system-prompts-and-temperature` |
+| 03 | `/learn-03-structured-output` |
+| 04 | `/learn-04-rag-chat-with-your-docs` |
+| 05 | `/learn-05-tool-use` |
+| 06 | `/learn-06-mcp-server` |
