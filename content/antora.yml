@@ -1,0 +1,12 @@
+name: local-llm-lab
+title: Local LLM Lab
+version: main
+start_page: index.adoc
+nav:
+  - modules/ROOT/nav.adoc
+
+asciidoc:
+  attributes:
+    litellm_url: '%litellm_url%'
+    litellm_api_key: '%litellm_api_key%'
+    litellm_model: '%litellm_model%'

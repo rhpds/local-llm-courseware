@@ -1,0 +1,20 @@
+site:
+  title: Local LLM Lab
+  start_page: local-llm-lab::index.adoc
+
+content:
+  sources:
+    - url: ./
+      start_path: content
+
+asciidoc:
+  attributes:
+    experimental: ''
+    idprefix: ''
+    idseparator: '-'
+    source-highlighter: highlightjs
+
+ui:
+  bundle:
+    url: https://github.com/rhpds/showroom-ui/releases/latest/download/ui-bundle.zip
+    snapshot: true
