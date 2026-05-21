@@ -11,3 +11,4 @@ asciidoc:
     litellm_url: '%litellm_url%'
     litellm_api_key: '%litellm_api_key%'
     litellm_model: '%litellm_model%'
+    litellm_model_fast: '%litellm_model_fast%'
