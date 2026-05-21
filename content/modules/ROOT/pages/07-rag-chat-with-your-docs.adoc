@@ -1,9 +1,9 @@
 = RAG: Chat with Your Docs
 
-Retrieval-augmented generation (RAG) grounds LLM answers in documents
-the model was never trained on. You retrieve relevant text, inject it
-into the prompt, and get answers based on your data instead of
-hallucination.
+This section uses the `{litellm_model}` model. Retrieval-augmented
+generation (RAG) grounds LLM answers in documents the model was never
+trained on. You retrieve relevant text, inject it into the prompt, and
+get answers based on your data instead of hallucination.
 
 == Create sample documents
 
