@@ -1,4 +1,4 @@
 ---
-tabs:
-  - title: Terminal
-    url: terminal
+antora:
+  dir: "local-llm-lab"
+  name: "main"
