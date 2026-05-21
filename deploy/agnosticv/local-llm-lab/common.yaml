@@ -85,6 +85,7 @@ ocp4_workroom_showroom_user_data:
   litellm_url: "https://litellm-{{ _local_llm_lab_namespace }}.apps.{{ subdomain_base }}"
   litellm_api_key: "{{ _local_llm_lab_litellm_master_key }}"
   litellm_model: "{{ _local_llm_lab_models[0] }}"
+  litellm_model_fast: "{{ _local_llm_lab_models[1] }}"
 
 # -------------------------------------------------------------------
 # Babylon meta variables
