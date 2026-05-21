@@ -16,5 +16,5 @@ asciidoc:
 
 ui:
   bundle:
-    url: https://github.com/rhpds/showroom-ui/releases/latest/download/ui-bundle.zip
+    url: https://github.com/rhpds/rhdp_showroom_theme/releases/download/v0.0.1/ui-bundle.zip
     snapshot: true
