@@ -7,6 +7,7 @@ completion request to the local LLM.
 
 Use the OpenAI-compatible `/v1/chat/completions` endpoint:
 
+[.execute]
 [source,bash,subs="attributes"]
 ----
 curl -s {litellm_url}/v1/chat/completions \
@@ -31,6 +32,7 @@ an empty response.
 
 == Try a code generation prompt
 
+[.execute]
 [source,bash,subs="attributes"]
 ----
 curl -s {litellm_url}/v1/chat/completions \
