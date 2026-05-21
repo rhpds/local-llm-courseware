@@ -1,4 +1,12 @@
 ---
+type: showroom
+view_switcher:
+  enabled: true
+  default_mode: split
+persist_url_state: true
 antora:
   dir: "local-llm-lab"
   name: "main"
+tabs:
+  - name: Terminal
+    type: 'terminal'
