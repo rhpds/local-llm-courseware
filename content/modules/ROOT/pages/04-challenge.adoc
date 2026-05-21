@@ -8,6 +8,7 @@ own.
 Send a multi-turn conversation to the model. Include a system message
 that sets the persona, then two user/assistant turns:
 
+[.execute]
 [source,bash,subs="attributes"]
 ----
 curl -s {litellm_url}/v1/chat/completions \
