@@ -38,7 +38,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model}",
-    "max_tokens": 500,
+    "max_tokens": 1024,
     "messages": [
       {"role": "user", "content": "Write a Python function that checks whether a string is a palindrome."}
     ]
