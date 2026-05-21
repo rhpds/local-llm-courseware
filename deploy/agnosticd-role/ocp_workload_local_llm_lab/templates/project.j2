@@ -1,0 +1,10 @@
+apiVersion: project.openshift.io/v1
+kind: Project
+metadata:
+  annotations:
+    openshift.io/description: "Ollama + LiteLLM local-LLM lab environment"
+    openshift.io/display-name: "{{ _local_llm_lab_namespace_display }}"
+  name: "{{ _local_llm_lab_namespace }}"
+spec:
+  finalizers:
+    - kubernetes

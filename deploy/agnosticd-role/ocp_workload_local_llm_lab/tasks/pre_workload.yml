@@ -1,0 +1,23 @@
+---
+- name: Pre-workload tasks
+  debug:
+    msg: "Running pre-workload checks for Local LLM Lab"
+
+- name: Validate OCP cluster connectivity
+  k8s_info:
+    api_version: v1
+    kind: Namespace
+    name: default
+  register: r_cluster_check
+  until: r_cluster_check.resources | length > 0
+  retries: 5
+  delay: 10
+
+- name: Print cluster validation result
+  debug:
+    msg: "Cluster connectivity validated."
+
+- name: Pre-workload tasks complete
+  debug:
+    msg: "Pre-workload tasks completed successfully."
+  when: not silent | bool

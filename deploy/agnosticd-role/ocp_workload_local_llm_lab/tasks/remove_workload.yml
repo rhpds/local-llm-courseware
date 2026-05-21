@@ -1,0 +1,32 @@
+---
+- name: Removing Local LLM Lab workload
+  debug:
+    msg: "Removing namespace {{ _local_llm_lab_namespace }} and all resources"
+
+- name: Remove anyuid SCC from lab ServiceAccount
+  command: >-
+    oc adm policy remove-scc-from-user anyuid
+    system:serviceaccount:{{ _local_llm_lab_namespace }}:local-llm-lab
+  ignore_errors: true
+
+- name: Remove Local LLM Lab namespace
+  k8s:
+    name: "{{ _local_llm_lab_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: absent
+
+- name: Wait for namespace deletion
+  k8s_info:
+    api_version: v1
+    kind: Namespace
+    name: "{{ _local_llm_lab_namespace }}"
+  register: r_namespace
+  until: r_namespace.resources | length == 0
+  retries: 30
+  delay: 10
+
+- name: Remove workload tasks complete
+  debug:
+    msg: "Remove workload tasks completed successfully."
+  when: not silent | bool

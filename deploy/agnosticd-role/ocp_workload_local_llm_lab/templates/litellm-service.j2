@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: litellm
+  namespace: "{{ _local_llm_lab_namespace }}"
+  labels:
+    app: litellm
+spec:
+  ports:
+    - port: 4000
+      protocol: TCP
+      targetPort: 4000
+  selector:
+    app: litellm
+  type: ClusterIP

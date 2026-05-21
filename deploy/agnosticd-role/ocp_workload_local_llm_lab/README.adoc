@@ -1,0 +1,97 @@
+= ocp_workload_local_llm_lab
+
+Deploys an Ollama + LiteLLM local-LLM lab environment into an OpenShift namespace.
+
+== Components
+
+* *Ollama* -- model serving runtime (CPU-only on vanilla clusters)
+* *LiteLLM proxy* -- OpenAI-compatible API gateway in front of Ollama
+* *Model pull Job* -- pulls configured models after Ollama is ready
+
+== Usage
+
+Deploy:
+[source,bash]
+----
+ansible-playbook test-playbook.yml -e ACTION=create
+----
+
+Remove:
+[source,bash]
+----
+ansible-playbook test-playbook.yml -e ACTION=remove
+----
+
+== Variables
+
+[cols="3,1,5"]
+|===
+| Variable | Default | Description
+
+| `_local_llm_lab_namespace`
+| `local-llm-lab`
+| Target OpenShift namespace/project
+
+| `_local_llm_lab_ollama_image`
+| `docker.io/ollama/ollama:latest`
+| Ollama container image
+
+| `_local_llm_lab_ollama_storage_size`
+| `10Gi`
+| PVC size for model storage
+
+| `_local_llm_lab_litellm_image`
+| `ghcr.io/berriai/litellm-non_root:v1.85.1`
+| LiteLLM proxy image (must be >= 1.83)
+
+| `_local_llm_lab_litellm_master_key`
+| `sk-local-llm-lab`
+| Bearer token for LiteLLM API access
+
+| `_local_llm_lab_models`
+| `["qwen3:1.7b"]`
+| List of models to pull into Ollama
+
+| `_local_llm_lab_create_route`
+| `true`
+| Whether to create an OpenShift Route for external access
+
+| `_local_llm_lab_ollama_cpu_request` / `_limit`
+| `2` / `4`
+| Ollama CPU resources
+
+| `_local_llm_lab_ollama_memory_request` / `_limit`
+| `4Gi` / `8Gi`
+| Ollama memory resources
+
+| `_local_llm_lab_litellm_cpu_request` / `_limit`
+| `200m` / `500m`
+| LiteLLM CPU resources
+
+| `_local_llm_lab_litellm_memory_request` / `_limit`
+| `256Mi` / `512Mi`
+| LiteLLM memory resources
+|===
+
+== Architecture
+
+----
+Namespace: local-llm-lab
+  Ollama (Deployment + PVC + Service)
+    port 11434, model storage on PVC
+  LiteLLM (Deployment + ConfigMap + Service + Route)
+    port 4000, proxies to Ollama via cluster DNS
+  model-pull (Job)
+    waits for Ollama readiness, then pulls configured models
+----
+
+== Prerequisites
+
+* OpenShift 4.x cluster with admin access
+* `oc login` authenticated session
+* Python packages: `kubernetes`, `openshift` (for Ansible k8s module)
+
+== Migration to agnosticd
+
+When proven, this role moves to:
+`agnosticd/ansible/collections/ansible_collections/agnosticd/ai/roles/ocp_workload_local_llm_lab/`

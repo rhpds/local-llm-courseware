@@ -1,0 +1,155 @@
+---
+# -------------------------------------------------------------------
+# Catalog Item: Local LLM Lab
+# Deploys Ollama + LiteLLM proxy into an OCP namespace with a
+# Showroom lab guide. Students interact with the local LLM through
+# the OpenAI-compatible API exposed by LiteLLM.
+# -------------------------------------------------------------------
+
+#include /includes/agd-v2-mapping.yaml
+#include /includes/catalog-icon-openshift.yaml
+#include /includes/terms-of-service.yaml
+
+# -------------------------------------------------------------------
+# Mandatory Variables
+# -------------------------------------------------------------------
+
+config: openshift-workloads
+cloud_provider: none
+num_users: 1
+
+clusters:
+- default:
+    api_url: "{{ openshift_api_url }}"
+    api_token: "{{ openshift_cluster_admin_token }}"
+
+# ===================================================================
+# Additional Collections & roles
+# ===================================================================
+requirements_content:
+  collections:
+
+  - name: https://github.com/agnosticd/core_workloads.git
+    type: git
+    version: main
+
+  # Local LLM Lab role (prototype -- move to ai_workloads collection later)
+  - name: https://github.com/rhpds/local-llm-courseware.git
+    type: git
+    version: main
+
+  # Showroom
+  - name: https://github.com/agnosticd/showroom.git
+    type: git
+    version: v1.6.8
+
+# ===================================================================
+# List of workloads to be deployed
+# ===================================================================
+workloads:
+
+- agnosticd.core_workloads.ocp4_workload_authentication
+- local_llm_courseware.deploy.ocp_workload_local_llm_lab
+- agnosticd.showroom.ocp4_workload_showroom
+
+# ===================================================================
+# Workload: ocp4_workload_authentication
+# ===================================================================
+ocp4_workload_authentication_provider: htpasswd
+
+# ===================================================================
+# Workload: ocp_workload_local_llm_lab
+# ===================================================================
+_local_llm_lab_namespace: "local-llm-lab"
+_local_llm_lab_ollama_storage_size: "10Gi"
+_local_llm_lab_ollama_cpu_request: "2"
+_local_llm_lab_ollama_cpu_limit: "4"
+_local_llm_lab_ollama_memory_request: "4Gi"
+_local_llm_lab_ollama_memory_limit: "8Gi"
+_local_llm_lab_litellm_master_key: "sk-local-llm-lab"
+_local_llm_lab_models:
+  - "qwen3:1.7b"
+_local_llm_lab_create_route: true
+
+# ===================================================================
+# Workload: ocp4_workload_showroom
+# ===================================================================
+ocp4_workload_showroom_content_git_repo: >-
+  https://github.com/rhpds/showroom-local-llm-lab.git
+ocp4_workload_showroom_content_git_repo_ref: main
+ocp4_workload_showroom_deployment_type: helm
+ocp4_workload_showroom_deployer_chart_version: 1.3.1
+
+# User data passed through to Showroom content for variable substitution
+ocp4_workroom_showroom_user_data:
+  litellm_url: "https://litellm-{{ _local_llm_lab_namespace }}.apps.{{ subdomain_base }}"
+  litellm_api_key: "{{ _local_llm_lab_litellm_master_key }}"
+  litellm_model: "{{ _local_llm_lab_models[0] }}"
+
+# -------------------------------------------------------------------
+# Babylon meta variables
+# -------------------------------------------------------------------
+
+__meta__:
+  owners:
+    maintainer:
+    - name: Josh Disraeli
+      email: jdisrael@redhat.com
+  catalog:
+    display_name: "Local LLM Lab (Ollama + LiteLLM)"
+    category: Labs
+    namespace: babylon-catalog-{{ stage | default('?') }}
+    keywords:
+    - openshift
+    - llm
+    - ollama
+    - litellm
+    - ai
+    labels:
+      Provider: RHDP
+    reportingLabels:
+      primaryBU: Hybrid_Platforms
+    parameters: []
+
+  components:
+  - name: openshift
+    display_name: OpenShift Cluster
+    item: agd-v2/ocp-cluster-cnv-pools
+    parameter_values:
+      cluster_size: singlenode
+      host_ocp4_installer_version: '4.17'
+    propagate_provision_data:
+    - name: openshift_api_ca_cert
+      var: openshift_api_ca_cert
+    - name: openshift_api_url
+      var: openshift_api_url
+    - name: openshift_cluster_admin_token
+      var: openshift_api_key
+    - name: openshift_cluster_admin_token
+      var: openshift_cluster_admin_token
+    - name: bastion_public_hostname
+      var: bastion_ansible_host
+    - name: bastion_ssh_user_name
+      var: bastion_ansible_user
+    - name: bastion_ssh_password
+      var: bastion_ansible_ssh_pass
+    - name: bastion_ssh_port
+      var: bastion_ansible_port
+
+  deployer:
+    scm_url: https://github.com/agnosticd/agnosticd-v2
+    scm_ref: main
+    execution_environment:
+      image: quay.io/agnosticd/ee-multicloud:chained-2026-02-23
+      pull: missing
+    actions:
+      destroy:
+        disable: false
+      start:
+        disable: false
+      status:
+        disable: true
+      stop:
+        disable: false
+      update:
+        disable: true

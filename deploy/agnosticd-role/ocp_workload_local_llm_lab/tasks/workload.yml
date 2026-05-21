@@ -1,0 +1,79 @@
+---
+- name: Setting up Local LLM Lab workload
+  debug:
+    msg: "Deploying Ollama + LiteLLM into namespace {{ _local_llm_lab_namespace }}"
+
+- name: Create OpenShift Project and ServiceAccount
+  k8s:
+    state: present
+    merge_type:
+      - strategic-merge
+      - merge
+    definition: "{{ lookup('template', item) | from_yaml }}"
+  loop:
+    - ./templates/project.j2
+    - ./templates/serviceaccount.j2
+
+- name: Grant anyuid SCC to lab ServiceAccount
+  command: >-
+    oc adm policy add-scc-to-user anyuid
+    system:serviceaccount:{{ _local_llm_lab_namespace }}:local-llm-lab
+
+- name: Create Ollama resources
+  k8s:
+    state: present
+    merge_type:
+      - strategic-merge
+      - merge
+    definition: "{{ lookup('template', item) | from_yaml }}"
+  loop:
+    - ./templates/ollama-pvc.j2
+    - ./templates/ollama-deployment.j2
+    - ./templates/ollama-service.j2
+
+- name: Wait for Ollama deployment to be ready
+  k8s_info:
+    api_version: apps/v1
+    kind: Deployment
+    name: ollama
+    namespace: "{{ _local_llm_lab_namespace }}"
+  register: r_ollama_deployment
+  until:
+    - r_ollama_deployment.resources | length > 0
+    - r_ollama_deployment.resources[0].status.readyReplicas | default(0) | int >= 1
+  retries: 30
+  delay: 10
+
+- name: Create LiteLLM resources
+  k8s:
+    state: present
+    merge_type:
+      - strategic-merge
+      - merge
+    definition: "{{ lookup('template', item) | from_yaml }}"
+  loop:
+    - ./templates/litellm-configmap.j2
+    - ./templates/litellm-deployment.j2
+    - ./templates/litellm-service.j2
+
+- name: Create LiteLLM Route
+  k8s:
+    state: present
+    merge_type:
+      - strategic-merge
+      - merge
+    definition: "{{ lookup('template', './templates/litellm-route.j2') | from_yaml }}"
+  when: _local_llm_lab_create_route | bool
+
+- name: Launch model pull Job
+  k8s:
+    state: present
+    merge_type:
+      - strategic-merge
+      - merge
+    definition: "{{ lookup('template', './templates/model-pull-job.j2') | from_yaml }}"
+
+- name: Workload tasks complete
+  debug:
+    msg: "Workload tasks completed successfully."
+  when: not silent | bool

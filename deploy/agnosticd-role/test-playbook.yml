@@ -1,0 +1,28 @@
+---
+# Standalone test playbook for ocp_workload_local_llm_lab role.
+#
+# Deploy:
+#   ansible-playbook test-playbook.yml -e ACTION=create
+#
+# Remove:
+#   ansible-playbook test-playbook.yml -e ACTION=remove
+#
+# Override defaults:
+#   ansible-playbook test-playbook.yml -e ACTION=create \
+#     -e _local_llm_lab_namespace=my-lab \
+#     -e '{"_local_llm_lab_models": ["qwen3:1.7b", "granite3.2:2b"]}'
+#
+# Prerequisites:
+#   - oc login to a cluster with admin privileges
+#   - pip install kubernetes openshift (for k8s Ansible module)
+
+- name: Test Local LLM Lab workload role
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    ACTION: "create"
+
+  roles:
+    - ocp_workload_local_llm_lab

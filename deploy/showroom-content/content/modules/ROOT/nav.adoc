@@ -1,0 +1,5 @@
+* xref:index.adoc[Introduction]
+* xref:01-explore-the-environment.adoc[1. Explore the Environment]
+* xref:02-interact-with-the-api.adoc[2. Interact with the API]
+* xref:03-model-management.adoc[3. Model Management]
+* xref:04-challenge.adoc[4. Challenge]

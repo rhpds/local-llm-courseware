@@ -1,0 +1,31 @@
+---
+become_override: false
+ocp_username: opentlc-mgr
+silent: false
+
+# Namespace
+_local_llm_lab_namespace: "local-llm-lab"
+_local_llm_lab_namespace_display: "Local LLM Lab"
+
+# Ollama
+_local_llm_lab_ollama_image: "docker.io/ollama/ollama:latest"
+_local_llm_lab_ollama_storage_size: "10Gi"
+_local_llm_lab_ollama_cpu_request: "2"
+_local_llm_lab_ollama_cpu_limit: "4"
+_local_llm_lab_ollama_memory_request: "4Gi"
+_local_llm_lab_ollama_memory_limit: "8Gi"
+
+# LiteLLM (>= 1.83, pinned to known-good stable)
+_local_llm_lab_litellm_image: "ghcr.io/berriai/litellm-non_root:v1.85.1"
+_local_llm_lab_litellm_master_key: "sk-local-llm-lab"
+_local_llm_lab_litellm_cpu_request: "200m"
+_local_llm_lab_litellm_cpu_limit: "500m"
+_local_llm_lab_litellm_memory_request: "1Gi"
+_local_llm_lab_litellm_memory_limit: "2Gi"
+
+# Models to pull into Ollama after deployment
+_local_llm_lab_models:
+  - "qwen3:1.7b"
+
+# Networking
+_local_llm_lab_create_route: true

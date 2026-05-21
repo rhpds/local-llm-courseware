@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: "{{ _local_llm_lab_namespace }}"
+  labels:
+    app: ollama
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      serviceAccountName: local-llm-lab
+      containers:
+        - name: ollama
+          image: "{{ _local_llm_lab_ollama_image }}"
+          ports:
+            - containerPort: 11434
+              protocol: TCP
+          env:
+            - name: OLLAMA_HOME
+              value: /ollama-data
+          resources:
+            requests:
+              cpu: "{{ _local_llm_lab_ollama_cpu_request }}"
+              memory: "{{ _local_llm_lab_ollama_memory_request }}"
+            limits:
+              cpu: "{{ _local_llm_lab_ollama_cpu_limit }}"
+              memory: "{{ _local_llm_lab_ollama_memory_limit }}"
+          volumeMounts:
+            - name: models
+              mountPath: /ollama-data
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 30
+            periodSeconds: 30
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: ollama-models

@@ -1,0 +1,47 @@
+= Explore the Environment
+
+In this section you will verify that Ollama and LiteLLM are running and
+healthy in your OpenShift namespace.
+
+== Check LiteLLM health
+
+LiteLLM exposes a health endpoint. Confirm the proxy is reachable:
+
+[source,bash,subs="attributes"]
+----
+curl -s {litellm_url}/health/readiness
+----
+
+You should see a JSON response with `"status": "healthy"`.
+
+== List available models
+
+Ask LiteLLM which models are registered:
+
+[source,bash,subs="attributes"]
+----
+curl -s {litellm_url}/v1/models \
+  -H "Authorization: Bearer {litellm_api_key}" | python3 -m json.tool
+----
+
+You should see *{litellm_model}* in the model list. This model is
+served by the Ollama instance running inside the same OpenShift
+namespace.
+
+== Verify Ollama directly (optional)
+
+If you have access to the cluster terminal, you can reach Ollama's
+internal service:
+
+[source,bash]
+----
+curl -s http://ollama.local-llm-lab.svc.cluster.local:11434/api/tags | python3 -m json.tool
+----
+
+This shows the raw model list from Ollama before LiteLLM wraps it in
+the OpenAI format.
+
+== Summary
+
+You confirmed that both services are healthy and that the local model
+is available through the OpenAI-compatible API.

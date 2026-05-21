@@ -1,0 +1,17 @@
+= Local LLM Lab
+
+Deploy a fully self-contained local LLM environment on OpenShift using
+Ollama and LiteLLM proxy. Students learn to interact with a local
+language model through an OpenAI-compatible API -- no external providers,
+no API keys, no data leaving the cluster.
+
+== What gets deployed
+
+* *Ollama* -- local model runtime serving Qwen3 1.7B
+* *LiteLLM* -- OpenAI-compatible proxy in front of Ollama
+* *Showroom* -- guided lab instructions with an embedded terminal
+
+== Prerequisites
+
+* OpenShift 4.17+ cluster (CPU-only, no GPU required)
+* Cluster admin access

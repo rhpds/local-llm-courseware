@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config
+  namespace: "{{ _local_llm_lab_namespace }}"
+  labels:
+    app: litellm
+data:
+  config.yaml: |
+    model_list:
+{% for model in _local_llm_lab_models %}
+      - model_name: "{{ model }}"
+        litellm_params:
+          model: "ollama/{{ model }}"
+          api_base: "http://ollama.{{ _local_llm_lab_namespace }}.svc.cluster.local:11434"
+{% endfor %}
+
+    general_settings:
+      master_key: "{{ _local_llm_lab_litellm_master_key }}"

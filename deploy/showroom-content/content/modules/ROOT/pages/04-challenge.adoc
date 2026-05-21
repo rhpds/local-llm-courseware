@@ -1,0 +1,62 @@
+= Challenge
+
+Now that you understand the environment, try these exercises on your
+own.
+
+== Exercise 1: Multi-turn conversation
+
+Send a multi-turn conversation to the model. Include a system message
+that sets the persona, then two user/assistant turns:
+
+[source,bash,subs="attributes"]
+----
+curl -s {litellm_url}/v1/chat/completions \
+  -H "Authorization: Bearer {litellm_api_key}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "{litellm_model}",
+    "max_tokens": 500,
+    "messages": [
+      {"role": "system", "content": "You are a helpful OpenShift tutor."},
+      {"role": "user", "content": "What is a Pod?"},
+      {"role": "assistant", "content": "A Pod is the smallest deployable unit in Kubernetes and OpenShift."},
+      {"role": "user", "content": "How is it different from a container?"}
+    ]
+  }' | python3 -m json.tool
+----
+
+Does the model maintain context from the earlier turns?
+
+== Exercise 2: Compare response quality
+
+Try the same prompt with different `max_tokens` values (100, 300, 800)
+and observe how the response quality changes. With some models,
+lower `max_tokens` can truncate the response mid-sentence.
+
+== Exercise 3: Explore model parameters
+
+Add `"temperature": 0.0` to your request and send the same prompt
+three times. Then try `"temperature": 1.0`. How does the variability
+of the responses change?
+
+== Verification
+
+Confirm you completed the exercises:
+
+[cols="1,3"]
+|===
+| Exercise | Expected outcome
+
+| Multi-turn
+| Model references the earlier Pod definition in its answer
+
+| Token comparison
+| You observed truncation at low `max_tokens` and full answers at
+  higher values
+
+| Temperature
+| Low temperature produced near-identical responses; high temperature
+  produced varied ones
+|===
+
+Congratulations -- you have completed the Local LLM Lab.

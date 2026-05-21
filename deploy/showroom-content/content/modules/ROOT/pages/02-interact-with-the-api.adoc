@@ -1,0 +1,64 @@
+= Interact with the API
+
+Now that you have verified the environment, send your first chat
+completion request to the local LLM.
+
+== Send a chat completion
+
+Use the OpenAI-compatible `/v1/chat/completions` endpoint:
+
+[source,bash,subs="attributes"]
+----
+curl -s {litellm_url}/v1/chat/completions \
+  -H "Authorization: Bearer {litellm_api_key}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "{litellm_model}",
+    "max_tokens": 300,
+    "messages": [
+      {"role": "user", "content": "What is OpenShift in one sentence?"}
+    ]
+  }' | python3 -m json.tool
+----
+
+The response follows the standard OpenAI chat completions format. The
+`choices[0].message.content` field contains the model's answer.
+
+NOTE: The `max_tokens` value of 300 is intentionally generous. Some
+models (including Qwen3) use internal "thinking tokens" before
+producing visible output. Setting `max_tokens` too low can result in
+an empty response.
+
+== Try a code generation prompt
+
+[source,bash,subs="attributes"]
+----
+curl -s {litellm_url}/v1/chat/completions \
+  -H "Authorization: Bearer {litellm_api_key}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "{litellm_model}",
+    "max_tokens": 500,
+    "messages": [
+      {"role": "user", "content": "Write a Python function that checks whether a string is a palindrome."}
+    ]
+  }' | python3 -m json.tool
+----
+
+== Observe the request flow
+
+Every request you just sent followed this path:
+
+----
+Your terminal
+  -> LiteLLM proxy (port 4000, OpenAI-compatible API)
+    -> Ollama (port 11434, local model runtime)
+      -> Qwen3 model weights (on PVC)
+----
+
+No data left the cluster. The entire inference pipeline runs locally.
+
+== Summary
+
+You sent chat completion requests through the OpenAI-compatible API
+and observed responses from the local model.

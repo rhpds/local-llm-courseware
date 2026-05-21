@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: model-pull
+  namespace: "{{ _local_llm_lab_namespace }}"
+  labels:
+    app: ollama
+    component: model-pull
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: ollama
+        component: model-pull
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: wait-for-ollama
+          image: "registry.access.redhat.com/ubi9/ubi-minimal:latest"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for Ollama to become ready..."
+              until curl -sf http://ollama.{{ _local_llm_lab_namespace }}.svc.cluster.local:11434/ >/dev/null 2>&1; do
+                echo "Ollama not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "Ollama is ready."
+      containers:
+        - name: pull-models
+          image: "registry.access.redhat.com/ubi9/ubi-minimal:latest"
+          command:
+            - /bin/sh
+            - -c
+            - |
+{% for model in _local_llm_lab_models %}
+              echo "Pulling model: {{ model }}"
+              curl -sf -X POST http://ollama.{{ _local_llm_lab_namespace }}.svc.cluster.local:11434/api/pull \
+                -H "Content-Type: application/json" \
+                -d '{"name": "{{ model }}", "stream": false}'
+              echo ""
+              echo "Model {{ model }} pulled successfully."
+{% endfor %}
+              echo "All models pulled."

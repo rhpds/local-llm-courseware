@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm
+  namespace: "{{ _local_llm_lab_namespace }}"
+  labels:
+    app: litellm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: litellm
+  template:
+    metadata:
+      labels:
+        app: litellm
+    spec:
+      containers:
+        - name: litellm
+          image: "{{ _local_llm_lab_litellm_image }}"
+          args:
+            - "--config"
+            - "/etc/litellm/config.yaml"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "4000"
+          ports:
+            - containerPort: 4000
+              protocol: TCP
+          env:
+            - name: LITELLM_MASTER_KEY
+              value: "{{ _local_llm_lab_litellm_master_key }}"
+          resources:
+            requests:
+              cpu: "{{ _local_llm_lab_litellm_cpu_request }}"
+              memory: "{{ _local_llm_lab_litellm_memory_request }}"
+            limits:
+              cpu: "{{ _local_llm_lab_litellm_cpu_limit }}"
+              memory: "{{ _local_llm_lab_litellm_memory_limit }}"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/litellm
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: 4000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/liveness
+              port: 4000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+      volumes:
+        - name: config
+          configMap:
+            name: litellm-config

@@ -1,0 +1,62 @@
+---
+- name: Wait for LiteLLM deployment to be ready
+  k8s_info:
+    api_version: apps/v1
+    kind: Deployment
+    name: litellm
+    namespace: "{{ _local_llm_lab_namespace }}"
+  register: r_litellm_deployment
+  until:
+    - r_litellm_deployment.resources | length > 0
+    - r_litellm_deployment.resources[0].status.readyReplicas | default(0) | int >= 1
+  retries: 30
+  delay: 10
+
+- name: Wait for model pull Job to complete
+  k8s_info:
+    api_version: batch/v1
+    kind: Job
+    name: model-pull
+    namespace: "{{ _local_llm_lab_namespace }}"
+  register: r_model_pull_job
+  until:
+    - r_model_pull_job.resources | length > 0
+    - r_model_pull_job.resources[0].status.succeeded | default(0) | int >= 1
+  retries: 60
+  delay: 15
+
+- name: Get LiteLLM Route
+  k8s_info:
+    api_version: route.openshift.io/v1
+    kind: Route
+    name: litellm
+    namespace: "{{ _local_llm_lab_namespace }}"
+  register: r_litellm_route
+  when: _local_llm_lab_create_route | bool
+
+- name: Set LiteLLM URL fact
+  set_fact:
+    _local_llm_lab_litellm_url: >-
+      https://{{ r_litellm_route.resources[0].spec.host }}
+  when:
+    - _local_llm_lab_create_route | bool
+    - r_litellm_route.resources | length > 0
+
+- name: Print access information
+  debug:
+    msg: |-
+      Local LLM Lab deployment complete.
+
+      Namespace:    {{ _local_llm_lab_namespace }}
+      LiteLLM URL:  {{ _local_llm_lab_litellm_url | default('(no route created)') }}
+      Master Key:   {{ _local_llm_lab_litellm_master_key }}
+      Models:       {{ _local_llm_lab_models | join(', ') }}
+
+      Test with:
+        curl -s {{ _local_llm_lab_litellm_url | default('http://litellm:4000') }}/v1/models \
+          -H "Authorization: Bearer {{ _local_llm_lab_litellm_master_key }}"
+
+- name: Post-workload tasks complete
+  debug:
+    msg: "Post-workload tasks completed successfully."
+  when: not silent | bool
