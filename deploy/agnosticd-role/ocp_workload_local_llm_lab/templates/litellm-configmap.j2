@@ -17,3 +17,9 @@ data:
 
     general_settings:
       master_key: "{{ _local_llm_lab_litellm_master_key }}"
+
+    litellm_settings:
+      cache: true
+      cache_params:
+        type: "local"
+        ttl: 600
