@@ -1,0 +1,90 @@
+= Structured Output for Automation
+
+Use the local LLM to generate valid JSON and YAML that you can pipe
+directly into tooling -- no human edits in between.
+
+== Ask for JSON (the naive way)
+
+Ask for JSON without format constraints and observe what happens:
+
+[.execute]
+[source,bash,subs="attributes"]
+----
+curl -s {litellm_url}/v1/chat/completions \
+  -H "Authorization: Bearer {litellm_api_key}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "{litellm_model}",
+    "max_tokens": 300,
+    "messages": [
+      {"role": "user", "content": "Give me a JSON object with fields: name, replicas, image for an nginx deployment."}
+    ]
+  }' | python3 -m json.tool
+----
+
+Common problems: markdown fences around the JSON, trailing
+explanation, or extra text before the object. This breaks if you
+pipe it into `jq` or a script.
+
+== Fix it with a system prompt
+
+Add a system prompt that enforces raw JSON, then validate with
+`python3`:
+
+[.execute]
+[source,bash,subs="attributes"]
+----
+RESP=$(curl -s {litellm_url}/v1/chat/completions \
+  -H "Authorization: Bearer {litellm_api_key}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "{litellm_model}",
+    "max_tokens": 300,
+    "temperature": 0.0,
+    "messages": [
+      {"role": "system", "content": "You are a JSON generator. Output ONLY valid JSON. No markdown fences, no explanation, no extra text. Start with { or [."},
+      {"role": "user", "content": "Give me a JSON object with fields: name (string), replicas (integer), image (string) for an nginx deployment."}
+    ]
+  }' | python3 -c "import sys,json; print(json.load(sys.stdin)['choices'][0]['message']['content'])")
+echo "$RESP"
+echo "---"
+echo "$RESP" | python3 -m json.tool 2>&1 && echo "Valid JSON" || echo "Invalid JSON"
+----
+
+System prompt plus temperature 0.0 makes the model reliable enough
+for scripting.
+
+== Pipeline: description to Kubernetes manifest
+
+Chain the LLM into a real workflow -- natural language in, validated
+YAML manifest out:
+
+[.execute]
+[source,bash,subs="attributes"]
+----
+MANIFEST=$(curl -s {litellm_url}/v1/chat/completions \
+  -H "Authorization: Bearer {litellm_api_key}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "{litellm_model}",
+    "max_tokens": 512,
+    "temperature": 0.0,
+    "messages": [
+      {"role": "system", "content": "You are a Kubernetes YAML generator. Output ONLY a valid Kubernetes Deployment manifest. No markdown fences, no explanation. Start directly with apiVersion."},
+      {"role": "user", "content": "Create a Deployment named web-app with 2 replicas running nginx:1.25, port 80, memory limit 128Mi."}
+    ]
+  }' | python3 -c "import sys,json; print(json.load(sys.stdin)['choices'][0]['message']['content'])")
+echo "$MANIFEST"
+echo "---"
+echo "$MANIFEST" | python3 -c "import yaml,sys; yaml.safe_load(sys.stdin) and print('Valid YAML')" 2>&1
+----
+
+This is the pattern: LLM generates structured output, tooling
+validates it. No human edits in between.
+
+== Summary
+
+* Without format constraints, models wrap output in markdown and add prose
+* A system prompt plus *temperature 0.0* produces parseable output
+* Always validate LLM output before trusting it
+* The pipeline pattern: natural language -> LLM -> structured data -> tooling

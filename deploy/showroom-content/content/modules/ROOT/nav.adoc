@@ -3,3 +3,8 @@
 * xref:02-interact-with-the-api.adoc[2. Interact with the API]
 * xref:03-model-management.adoc[3. Model Management]
 * xref:04-challenge.adoc[4. Challenge]
+* xref:05-system-prompts-and-temperature.adoc[5. System Prompts and Temperature]
+* xref:06-structured-output.adoc[6. Structured Output]
+* xref:07-rag-chat-with-your-docs.adoc[7. RAG: Chat with Your Docs]
+* xref:08-tool-use.adoc[8. Tool Use and Function Calling]
+* xref:09-mcp-server.adoc[9. Build an MCP Server]

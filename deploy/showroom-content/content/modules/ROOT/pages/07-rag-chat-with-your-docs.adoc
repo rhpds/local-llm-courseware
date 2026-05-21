@@ -1,0 +1,157 @@
+= RAG: Chat with Your Docs
+
+Retrieval-augmented generation (RAG) grounds LLM answers in documents
+the model was never trained on. You retrieve relevant text, inject it
+into the prompt, and get answers based on your data instead of
+hallucination.
+
+== Create sample documents
+
+These are fictional internal documents the model has never seen:
+
+[.execute]
+[source,bash]
+----
+mkdir -p ~/rag-docs
+
+cat > ~/rag-docs/project-phoenix.txt << 'EOF'
+Project Phoenix - Internal Platform Migration
+
+Project Phoenix is an internal initiative to migrate all legacy
+Jenkins pipelines to Tekton on OpenShift. The project started in
+Q3 2025 and targets completion by Q2 2026. Lead engineer is Priya
+Sharma. The migration covers 847 pipelines across 12 teams.
+
+Key decision: all new pipelines must use ClusterTasks from the
+shared catalog. No team-specific Task definitions without
+architecture review approval.
+EOF
+
+cat > ~/rag-docs/oncall-runbook.txt << 'EOF'
+Oncall Runbook - Escalation Procedures
+
+Severity 1 (service down): Page the primary oncall via PagerDuty.
+If no response in 15 minutes, page the secondary. Escalation
+manager is Dana Kim (dana.kim@example.com).
+
+Severity 2 (degraded): Create a Jira ticket in PLATFORM project,
+priority Critical. Notify #ops-alerts Slack channel. Do NOT page
+unless degradation exceeds 30 minutes.
+
+Severity 3 (cosmetic/minor): Create Jira ticket, priority Normal.
+No paging, no Slack alert required.
+EOF
+
+cat > ~/rag-docs/api-standards.txt << 'EOF'
+API Standards - Internal Guidelines v2.1
+
+All internal APIs must:
+  - Use OpenAPI 3.1 spec committed to the repo root
+  - Return JSON with snake_case field names
+  - Include X-Request-ID header in all responses
+  - Rate limit at 100 req/s per client by default
+  - Use /healthz for health checks, /readyz for readiness
+
+Authentication: mTLS between services, OAuth2 for external clients.
+JWT tokens issued by the internal Keycloak instance (auth.internal).
+EOF
+
+echo "Created $(ls ~/rag-docs/*.txt | wc -l | tr -d ' ') documents in ~/rag-docs/"
+ls -la ~/rag-docs/
+----
+
+== Ask without context (hallucination)
+
+Ask about Project Phoenix without providing any context:
+
+[.execute]
+[source,bash,subs="attributes"]
+----
+curl -s {litellm_url}/v1/chat/completions \
+  -H "Authorization: Bearer {litellm_api_key}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "{litellm_model}",
+    "max_tokens": 300,
+    "messages": [
+      {"role": "user", "content": "Who is the lead engineer on Project Phoenix and when does it target completion?"}
+    ]
+  }' | python3 -c "import sys,json; print(json.load(sys.stdin)['choices'][0]['message']['content'])"
+----
+
+The model either hallucinated (made up a name and date) or refused
+to answer. It has no way to know about internal projects.
+
+== Inject context (grounded answer)
+
+Paste the relevant document into the prompt as context:
+
+[.execute]
+[source,bash,subs="attributes"]
+----
+CONTEXT=$(cat ~/rag-docs/project-phoenix.txt)
+ESCAPED=$(python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))" <<< "$CONTEXT")
+curl -s {litellm_url}/v1/chat/completions \
+  -H "Authorization: Bearer {litellm_api_key}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "{litellm_model}",
+    "max_tokens": 300,
+    "temperature": 0.0,
+    "messages": [
+      {"role": "system", "content": "Answer based ONLY on the provided context. If the context does not contain the answer, say so."},
+      {"role": "user", "content": "Context:\n'"$ESCAPED"'\n\nQuestion: Who is the lead engineer on Project Phoenix and when does it target completion?"}
+    ]
+  }' | python3 -c "import sys,json; print(json.load(sys.stdin)['choices'][0]['message']['content'])"
+----
+
+Now the answer is correct: Priya Sharma, Q2 2026. The context
+grounded the response.
+
+== Scripted retrieval pipeline
+
+Automate the retrieve-and-ask pattern -- `grep` finds relevant files,
+their content becomes the prompt context:
+
+[.execute]
+[source,bash,subs="attributes"]
+----
+QUESTION="What is the escalation procedure for a severity 1 incident?"
+
+CONTEXT=$(grep -ril "severity\|escalation\|oncall" ~/rag-docs/ 2>/dev/null \
+  | head -3 | while read -r f; do
+    echo "--- $(basename "$f") ---"
+    cat "$f"
+    echo ""
+  done)
+
+echo "Retrieved documents:"
+grep -ril "severity\|escalation\|oncall" ~/rag-docs/ 2>/dev/null | xargs -I{} basename {}
+echo "---"
+
+ESCAPED_CTX=$(python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))" <<< "$CONTEXT")
+curl -s {litellm_url}/v1/chat/completions \
+  -H "Authorization: Bearer {litellm_api_key}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "{litellm_model}",
+    "max_tokens": 300,
+    "temperature": 0.0,
+    "messages": [
+      {"role": "system", "content": "Answer based ONLY on the provided context."},
+      {"role": "user", "content": "Context:\n'"$ESCAPED_CTX"'\n\nQuestion: '"$QUESTION"'"}
+    ]
+  }' | python3 -c "import sys,json; print(json.load(sys.stdin)['choices'][0]['message']['content'])"
+----
+
+This is RAG at its simplest: grep finds relevant files, their
+content becomes the prompt context, the model answers from that
+context. Production RAG uses vector embeddings instead of grep,
+but the retrieve-then-ask pattern is identical.
+
+== Summary
+
+* Models hallucinate on topics outside their training data
+* Injecting context into the prompt grounds the answer
+* The *retrieve-then-ask* pattern works at any scale
+* Production RAG replaces grep with vector search; the pattern is the same
