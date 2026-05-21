@@ -5,6 +5,8 @@ metadata:
   namespace: "{{ _local_llm_lab_namespace }}"
   labels:
     app: litellm
+  annotations:
+    haproxy.router.openshift.io/timeout: "300s"
 spec:
   port:
     targetPort: 4000
