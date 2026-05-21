@@ -1,0 +1,160 @@
+= Tool Use and Function Calling
+
+Instead of answering directly, the model can decide to call a
+function you define. You execute the function and return the result.
+This is how agents, plugins, and MCP work under the hood.
+
+== Define a tool
+
+Send a request with a tool definition. The model returns a tool
+call instead of a text answer:
+
+[.execute]
+[source,bash,subs="attributes"]
+----
+curl -s {litellm_url}/v1/chat/completions \
+  -H "Authorization: Bearer {litellm_api_key}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "{litellm_model}",
+    "max_tokens": 300,
+    "messages": [
+      {"role": "user", "content": "What time is it right now?"}
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_current_time",
+          "description": "Get the current date and time",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "timezone": {
+                "type": "string",
+                "description": "Timezone like UTC, US/Eastern"
+              }
+            },
+            "required": ["timezone"]
+          }
+        }
+      }
+    ]
+  }' | python3 -m json.tool
+----
+
+Instead of guessing the time, the model returned a `tool_calls`
+array with `function.name` and `function.arguments`. It decided
+*when* to call the tool and *what arguments* to pass.
+
+== Execute and return results
+
+Complete the loop: call the function, return the result, and get a
+final natural-language answer:
+
+[.execute]
+[source,bash,subs="attributes"]
+----
+FIRST=$(curl -s {litellm_url}/v1/chat/completions \
+  -H "Authorization: Bearer {litellm_api_key}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "{litellm_model}",
+    "max_tokens": 300,
+    "messages": [
+      {"role": "user", "content": "What is the current date and time?"}
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_current_time",
+          "description": "Get the current date and time",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "timezone": {"type": "string", "description": "Timezone like UTC"}
+            },
+            "required": ["timezone"]
+          }
+        }
+      }
+    ]
+  }')
+
+TOOL_ID=$(echo "$FIRST" | python3 -c "import sys,json; r=json.load(sys.stdin); tc=r['choices'][0]['message'].get('tool_calls',[]); print(tc[0]['id'] if tc else '')" 2>/dev/null)
+ASST_MSG=$(echo "$FIRST" | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin)['choices'][0]['message']))" 2>/dev/null)
+
+if [ -n "$TOOL_ID" ]; then
+  CURRENT_TIME=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+  echo "Tool called -> executing get_current_time -> $CURRENT_TIME"
+  echo "---"
+
+  curl -s {litellm_url}/v1/chat/completions \
+    -H "Authorization: Bearer {litellm_api_key}" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "model": "{litellm_model}",
+      "max_tokens": 300,
+      "messages": [
+        {"role": "user", "content": "What is the current date and time?"},
+        '"$ASST_MSG"',
+        {"role": "tool", "tool_call_id": "'"$TOOL_ID"'", "content": "'"$CURRENT_TIME"'"}
+      ]
+    }' | python3 -c "import sys,json; print(json.load(sys.stdin)['choices'][0]['message']['content'])"
+else
+  echo "Model answered directly (no tool call):"
+  echo "$FIRST" | python3 -c "import sys,json; print(json.load(sys.stdin)['choices'][0]['message']['content'])"
+fi
+----
+
+The model now answers with the real time. The flow:
+user asks -> model calls tool -> you execute -> model summarizes.
+
+== Multiple tools
+
+Give the model several tools and let it pick the right one for
+each question:
+
+[.execute]
+[source,bash,subs="attributes"]
+----
+TOOLS='[
+  {"type":"function","function":{"name":"get_current_time","description":"Get the current date and time","parameters":{"type":"object","properties":{"timezone":{"type":"string"}},"required":["timezone"]}}},
+  {"type":"function","function":{"name":"get_disk_usage","description":"Get disk usage for a path","parameters":{"type":"object","properties":{"path":{"type":"string"}},"required":["path"]}}},
+  {"type":"function","function":{"name":"count_files","description":"Count files in a directory","parameters":{"type":"object","properties":{"directory":{"type":"string"},"extension":{"type":"string"}},"required":["directory"]}}}
+]'
+
+echo "=== Question about time ==="
+curl -s {litellm_url}/v1/chat/completions \
+  -H "Authorization: Bearer {litellm_api_key}" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"{litellm_model}","max_tokens":300,"messages":[{"role":"user","content":"What time is it in UTC?"}],"tools":'"$TOOLS"'}' \
+  | python3 -c "import sys,json; tc=json.load(sys.stdin)['choices'][0]['message'].get('tool_calls',[{}]); print(json.dumps(tc[0].get('function',{}), indent=2))" 2>/dev/null
+
+echo ""
+echo "=== Question about disk ==="
+curl -s {litellm_url}/v1/chat/completions \
+  -H "Authorization: Bearer {litellm_api_key}" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"{litellm_model}","max_tokens":300,"messages":[{"role":"user","content":"How much disk space is used on /home?"}],"tools":'"$TOOLS"'}' \
+  | python3 -c "import sys,json; tc=json.load(sys.stdin)['choices'][0]['message'].get('tool_calls',[{}]); print(json.dumps(tc[0].get('function',{}), indent=2))" 2>/dev/null
+
+echo ""
+echo "=== Question about files ==="
+curl -s {litellm_url}/v1/chat/completions \
+  -H "Authorization: Bearer {litellm_api_key}" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"{litellm_model}","max_tokens":300,"messages":[{"role":"user","content":"How many .yaml files are in /etc/kubernetes?"}],"tools":'"$TOOLS"'}' \
+  | python3 -c "import sys,json; tc=json.load(sys.stdin)['choices'][0]['message'].get('tool_calls',[{}]); print(json.dumps(tc[0].get('function',{}), indent=2))" 2>/dev/null
+----
+
+The model reads tool descriptions and routes each question to the
+right function. This is how Claude Code and MCP work under the hood.
+
+== Summary
+
+* Define tools with a name, description, and parameter schema
+* The model decides *when* to call a tool and *what arguments* to pass
+* You execute the function and return the result
+* With multiple tools, the model picks the right one per question

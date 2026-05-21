@@ -1,0 +1,132 @@
+= Build an MCP Server
+
+The Model Context Protocol (MCP) is how Claude Code discovers and
+calls external tools. In this section you will scaffold a minimal
+MCP server backed by the local LLM.
+
+NOTE: This page walks through the code. Building and running the
+server requires a workstation with Python 3.10+ and `uv` installed
+(covered in Module 01 of the courseware).
+
+== The server code
+
+A complete MCP server in about 40 lines of Python. It uses inline
+script metadata so `uv run` handles dependencies automatically:
+
+[source,python]
+----
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["mcp[cli]>=1.0", "httpx"]
+# ///
+"""MCP server that exposes local LLM tools."""
+import os
+import httpx
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("local-llm-tools")
+
+LLM_URL = os.environ.get("LLM_URL", "http://127.0.0.1:4000")
+LLM_KEY = os.environ.get("LLM_KEY", "")
+LLM_MODEL = os.environ.get("LLM_MODEL", "qwen3-coder")
+
+
+def _query(system: str, prompt: str, max_tokens: int = 512) -> str:
+    resp = httpx.post(
+        f"{LLM_URL}/v1/chat/completions",
+        headers={"Authorization": f"Bearer {LLM_KEY}"},
+        json={
+            "model": LLM_MODEL,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt},
+            ],
+            "max_tokens": max_tokens,
+            "temperature": 0.0,
+        },
+        timeout=60.0,
+    )
+    resp.raise_for_status()
+    return resp.json()["choices"][0]["message"]["content"]
+
+
+@mcp.tool()
+def ask_local_llm(question: str) -> str:
+    """Ask the local LLM a question. Useful for getting a second
+    opinion from a model running entirely on-premises."""
+    return _query("Answer concisely.", question)
+
+
+@mcp.tool()
+def generate_yaml(description: str) -> str:
+    """Generate a Kubernetes YAML manifest from a natural-language
+    description. Returns raw YAML ready for oc/kubectl apply."""
+    return _query(
+        "You are a Kubernetes YAML generator. Output ONLY valid "
+        "YAML. No markdown fences, no explanation.",
+        description,
+        max_tokens=1024,
+    )
+
+
+if __name__ == "__main__":
+    mcp.run()
+----
+
+== How it works
+
+The server exposes two tools through MCP:
+
+[cols="1,2",options="header"]
+|===
+|Tool |Purpose
+
+|`ask_local_llm`
+|Ask the local model any question. Useful for getting a second
+opinion without sending data to the cloud.
+
+|`generate_yaml`
+|Generate a Kubernetes manifest from a plain-English description.
+Uses a YAML-enforcing system prompt and temperature 0.0.
+|===
+
+Both tools call the same `_query` helper, which sends a request to
+the LiteLLM proxy and extracts the response content.
+
+== Connect to Claude Code
+
+Register the server so Claude Code can discover and call the tools:
+
+[source,bash]
+----
+claude mcp add local-llm-tools \
+  -e LLM_URL="http://127.0.0.1:4000" \
+  -e LLM_KEY="$LITELLM_MASTER_KEY" \
+  -e LLM_MODEL="qwen3-coder" \
+  -- uv run ~/mcp-llm-tools/server.py
+----
+
+Then in a new Claude Code session, ask it to "use the local LLM to
+explain what a DaemonSet is" -- Claude Code will call your MCP server,
+which calls your local model. No data leaves your machine.
+
+== The full stack
+
+----
+Claude Code
+  -> MCP protocol (stdio)
+    -> Your MCP server (Python)
+      -> LiteLLM proxy (port 4000)
+        -> Ollama (port 11434)
+          -> Model weights (local disk/PVC)
+----
+
+Every layer runs locally. The MCP server is the bridge between
+Claude Code's tool-calling system and your private LLM.
+
+== Summary
+
+* MCP is how Claude Code discovers and calls external tools
+* A minimal MCP server is ~40 lines of Python
+* `uv run` with inline script metadata handles dependencies
+* The full stack keeps all inference local and private
