@@ -1,8 +1,9 @@
 = Tool Use and Function Calling
 
-Instead of answering directly, the model can decide to call a
-function you define. You execute the function and return the result.
-This is how agents, plugins, and MCP work under the hood.
+This section uses the `{litellm_model}` model. Instead of answering
+directly, the model can decide to call a function you define. You
+execute the function and return the result. This is how agents,
+plugins, and MCP work under the hood.
 
 == Define a tool
 
