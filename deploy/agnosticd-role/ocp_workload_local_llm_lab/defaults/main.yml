@@ -26,6 +26,7 @@ _local_llm_lab_litellm_memory_limit: "2Gi"
 # Models to pull into Ollama after deployment
 _local_llm_lab_models:
   - "qwen3:1.7b"
+  - "qwen3:0.6b"
 
 # Networking
 _local_llm_lab_create_route: true
