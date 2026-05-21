@@ -1,8 +1,9 @@
 = System Prompts and Temperature
 
-The same model gives very different answers depending on how you
-prompt it. In this section you will see how system prompts and
-temperature settings shape model output.
+This section uses the fast `{litellm_model_fast}` model. The same
+model gives very different answers depending on how you prompt it.
+Here you will see how system prompts and temperature settings shape
+model output.
 
 == No system prompt
 
@@ -15,7 +16,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Authorization: Bearer {litellm_api_key}" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "{litellm_model}",
+    "model": "{litellm_model_fast}",
     "max_tokens": 300,
     "messages": [
       {"role": "user", "content": "What is a Pod in Kubernetes?"}
@@ -37,7 +38,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Authorization: Bearer {litellm_api_key}" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "{litellm_model}",
+    "model": "{litellm_model_fast}",
     "max_tokens": 300,
     "messages": [
       {"role": "system", "content": "You are a Kubernetes expert. Answer in one sentence, no preamble."},
@@ -63,7 +64,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Authorization: Bearer {litellm_api_key}" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "{litellm_model}",
+    "model": "{litellm_model_fast}",
     "max_tokens": 64,
     "temperature": 0.0,
     "messages": [
@@ -78,7 +79,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Authorization: Bearer {litellm_api_key}" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "{litellm_model}",
+    "model": "{litellm_model_fast}",
     "max_tokens": 64,
     "temperature": 1.2,
     "messages": [
