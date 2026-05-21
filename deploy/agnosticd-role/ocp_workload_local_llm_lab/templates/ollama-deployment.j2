@@ -27,6 +27,12 @@ spec:
           env:
             - name: OLLAMA_HOME
               value: /ollama-data
+            - name: OLLAMA_FLASH_ATTENTION
+              value: "1"
+            - name: OLLAMA_NUM_PARALLEL
+              value: "2"
+            - name: OLLAMA_KEEP_ALIVE
+              value: "10m"
           resources:
             requests:
               cpu: "{{ _local_llm_lab_ollama_cpu_request }}"
