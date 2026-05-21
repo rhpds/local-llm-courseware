@@ -1,7 +1,8 @@
 = Structured Output for Automation
 
-Use the local LLM to generate valid JSON and YAML that you can pipe
-directly into tooling -- no human edits in between.
+This section uses the fast `{litellm_model_fast}` model. Use the
+local LLM to generate valid JSON and YAML that you can pipe directly
+into tooling -- no human edits in between.
 
 == Ask for JSON (the naive way)
 
@@ -14,7 +15,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Authorization: Bearer {litellm_api_key}" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "{litellm_model}",
+    "model": "{litellm_model_fast}",
     "max_tokens": 300,
     "messages": [
       {"role": "user", "content": "Give me a JSON object with fields: name, replicas, image for an nginx deployment."}
@@ -38,7 +39,7 @@ RESP=$(curl -s {litellm_url}/v1/chat/completions \
   -H "Authorization: Bearer {litellm_api_key}" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "{litellm_model}",
+    "model": "{litellm_model_fast}",
     "max_tokens": 300,
     "temperature": 0.0,
     "messages": [
@@ -66,7 +67,7 @@ MANIFEST=$(curl -s {litellm_url}/v1/chat/completions \
   -H "Authorization: Bearer {litellm_api_key}" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "{litellm_model}",
+    "model": "{litellm_model_fast}",
     "max_tokens": 512,
     "temperature": 0.0,
     "messages": [
