@@ -18,7 +18,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model}",
-    "max_tokens": 300,
+    "max_tokens": 1024,
     "messages": [
       {"role": "user", "content": "What time is it right now?"}
     ],
@@ -61,7 +61,7 @@ FIRST=$(curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model}",
-    "max_tokens": 300,
+    "max_tokens": 1024,
     "messages": [
       {"role": "user", "content": "What is the current date and time?"}
     ],
@@ -96,7 +96,7 @@ if [ -n "$TOOL_ID" ]; then
     -H "Content-Type: application/json" \
     -d '{
       "model": "{litellm_model}",
-      "max_tokens": 300,
+      "max_tokens": 1024,
       "messages": [
         {"role": "user", "content": "What is the current date and time?"},
         '"$ASST_MSG"',
@@ -130,7 +130,7 @@ echo "=== Question about time ==="
 curl -s {litellm_url}/v1/chat/completions \
   -H "Authorization: Bearer {litellm_api_key}" \
   -H "Content-Type: application/json" \
-  -d '{"model":"{litellm_model}","max_tokens":300,"messages":[{"role":"user","content":"What time is it in UTC?"}],"tools":'"$TOOLS"'}' \
+  -d '{"model":"{litellm_model}","max_tokens":1024,"messages":[{"role":"user","content":"What time is it in UTC?"}],"tools":'"$TOOLS"'}' \
   | python3 -c "import sys,json; tc=json.load(sys.stdin)['choices'][0]['message'].get('tool_calls',[{}]); print(json.dumps(tc[0].get('function',{}), indent=2))" 2>/dev/null
 
 echo ""
@@ -138,7 +138,7 @@ echo "=== Question about disk ==="
 curl -s {litellm_url}/v1/chat/completions \
   -H "Authorization: Bearer {litellm_api_key}" \
   -H "Content-Type: application/json" \
-  -d '{"model":"{litellm_model}","max_tokens":300,"messages":[{"role":"user","content":"How much disk space is used on /home?"}],"tools":'"$TOOLS"'}' \
+  -d '{"model":"{litellm_model}","max_tokens":1024,"messages":[{"role":"user","content":"How much disk space is used on /home?"}],"tools":'"$TOOLS"'}' \
   | python3 -c "import sys,json; tc=json.load(sys.stdin)['choices'][0]['message'].get('tool_calls',[{}]); print(json.dumps(tc[0].get('function',{}), indent=2))" 2>/dev/null
 
 echo ""
@@ -146,7 +146,7 @@ echo "=== Question about files ==="
 curl -s {litellm_url}/v1/chat/completions \
   -H "Authorization: Bearer {litellm_api_key}" \
   -H "Content-Type: application/json" \
-  -d '{"model":"{litellm_model}","max_tokens":300,"messages":[{"role":"user","content":"How many .yaml files are in /etc/kubernetes?"}],"tools":'"$TOOLS"'}' \
+  -d '{"model":"{litellm_model}","max_tokens":1024,"messages":[{"role":"user","content":"How many .yaml files are in /etc/kubernetes?"}],"tools":'"$TOOLS"'}' \
   | python3 -c "import sys,json; tc=json.load(sys.stdin)['choices'][0]['message'].get('tool_calls',[{}]); print(json.dumps(tc[0].get('function',{}), indent=2))" 2>/dev/null
 ----
 

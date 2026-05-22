@@ -16,7 +16,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model_fast}",
-    "max_tokens": 300,
+    "max_tokens": 1024,
     "messages": [
       {"role": "user", "content": "Give me a JSON object with fields: name, replicas, image for an nginx deployment."}
     ]
@@ -40,7 +40,7 @@ RESP=$(curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model_fast}",
-    "max_tokens": 300,
+    "max_tokens": 1024,
     "temperature": 0.0,
     "messages": [
       {"role": "system", "content": "You are a JSON generator. Output ONLY valid JSON. No markdown fences, no explanation, no extra text. Start with { or [."},
@@ -68,7 +68,7 @@ MANIFEST=$(curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model_fast}",
-    "max_tokens": 512,
+    "max_tokens": 1024,
     "temperature": 0.0,
     "messages": [
       {"role": "system", "content": "You are a Kubernetes YAML generator. Output ONLY a valid Kubernetes Deployment manifest. No markdown fences, no explanation. Start directly with apiVersion."},
