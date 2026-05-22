@@ -8,15 +8,16 @@ nav.pagination a { display: flex; flex-direction: column; text-decoration: none;
 nav.pagination .next a { align-items: flex-end; }
 nav.pagination .prev a { align-items: flex-start; }
 nav.pagination a .label { font-size: .85em; font-weight: 400; padding-bottom: .1em; }
+nav.pagination a .title { color: #333; font-weight: 400; }
 nav.pagination .prev a:before,
 nav.pagination .next a:after { display: none !important; }
 </style>
 <nav class="pagination">
   {{#with page.previous}}
-  <span class="prev"><a href="{{{relativize ./url}}}" class="query-params-link"><span class="label">Prev</span>{{{./content}}}</a></span>
+  <span class="prev"><a href="{{{relativize ./url}}}" class="query-params-link"><span class="label">Prev</span><span class="title">{{{./content}}}</span></a></span>
   {{/with}}
   {{#with page.next}}
-  <span class="next"><a href="{{{relativize ./url}}}" class="query-params-link"><span class="label">Next</span>{{{./content}}}</a></span>
+  <span class="next"><a href="{{{relativize ./url}}}" class="query-params-link"><span class="label">Next</span><span class="title">{{{./content}}}</span></a></span>
   {{/with}}
 </nav>
 {{/if}}
