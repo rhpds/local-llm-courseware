@@ -11,3 +11,5 @@ tabs:
   - name: Terminal
     path: '/terminal/'
     port: '443'
+  - name: LiteLLM
+    url: 'https://litellm-local-llm-lab.apps.cluster-cxpkw.dynamic2.redhatworkshops.io'
