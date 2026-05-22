@@ -22,6 +22,10 @@ curl -s {litellm_url}/v1/chat/completions \
   }' | python3 -m json.tool
 ----
 
+IMPORTANT: The first request may take 30-60 seconds while the model
+loads into memory. Subsequent requests will be much faster. Wait for
+the JSON response to appear before continuing.
+
 The response follows the standard OpenAI chat completions format. The
 `choices[0].message.content` field contains the model's answer.
 
