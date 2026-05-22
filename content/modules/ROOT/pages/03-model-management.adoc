@@ -5,12 +5,13 @@ LiteLLM stack.
 
 == List models in Ollama
 
-Models are listed via Ollama's internal API (this runs inside the
-cluster, not from your terminal):
+Check which models are currently downloaded:
 
-....
+[.execute]
+[source,bash]
+----
 curl -s http://ollama.local-llm-lab.svc.cluster.local:11434/api/tags | python3 -m json.tool
-....
+----
 
 You should see *{litellm_model}* along with its size and modification
 date.
@@ -41,11 +42,13 @@ Models are stored on a Persistent Volume Claim (PVC) mounted at
 `/ollama-data` inside the Ollama pod. The default PVC size is 10Gi,
 which is enough for several small models.
 
-To check current storage usage (requires cluster admin access):
+To check current storage usage:
 
-....
+[.execute]
+[source,bash]
+----
 oc exec deployment/ollama -n local-llm-lab -- du -sh /ollama-data
-....
+----
 
 == Summary
 
