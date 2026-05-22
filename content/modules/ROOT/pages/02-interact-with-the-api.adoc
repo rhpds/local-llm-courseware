@@ -15,7 +15,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model}",
-    "max_tokens": 300,
+    "max_tokens": 1024,
     "messages": [
       {"role": "user", "content": "What is OpenShift in one sentence?"}
     ]
@@ -25,10 +25,10 @@ curl -s {litellm_url}/v1/chat/completions \
 The response follows the standard OpenAI chat completions format. The
 `choices[0].message.content` field contains the model's answer.
 
-NOTE: The `max_tokens` value of 300 is intentionally generous. Some
-models (including Qwen3) use internal "thinking tokens" before
-producing visible output. Setting `max_tokens` too low can result in
-an empty response.
+NOTE: Qwen3 uses internal "thinking tokens" before producing visible
+output. Setting `max_tokens` too low (e.g. 300) results in an empty
+response because the budget is consumed by reasoning. We use 1024+
+throughout this lab to leave room for both thinking and output.
 
 == Try a code generation prompt
 
@@ -40,7 +40,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model}",
-    "max_tokens": 2048,
+    "max_tokens": 4096,
     "messages": [
       {"role": "user", "content": "Write a Python function that checks whether a string is a palindrome."}
     ]

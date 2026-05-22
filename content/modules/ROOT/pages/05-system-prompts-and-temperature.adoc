@@ -17,7 +17,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model_fast}",
-    "max_tokens": 300,
+    "max_tokens": 1024,
     "messages": [
       {"role": "user", "content": "What is a Pod in Kubernetes?"}
     ]
@@ -39,7 +39,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model_fast}",
-    "max_tokens": 300,
+    "max_tokens": 1024,
     "messages": [
       {"role": "system", "content": "You are a Kubernetes expert. Answer in one sentence, no preamble."},
       {"role": "user", "content": "What is a Pod in Kubernetes?"}
@@ -65,7 +65,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model_fast}",
-    "max_tokens": 64,
+    "max_tokens": 512,
     "temperature": 0.0,
     "messages": [
       {"role": "system", "content": "Suggest a creative project name."},
@@ -80,7 +80,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model_fast}",
-    "max_tokens": 64,
+    "max_tokens": 512,
     "temperature": 1.2,
     "messages": [
       {"role": "system", "content": "Suggest a creative project name."},

@@ -72,7 +72,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model}",
-    "max_tokens": 300,
+    "max_tokens": 1024,
     "messages": [
       {"role": "user", "content": "Who is the lead engineer on Project Phoenix and when does it target completion?"}
     ]
@@ -96,7 +96,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model}",
-    "max_tokens": 300,
+    "max_tokens": 1024,
     "temperature": 0.0,
     "messages": [
       {"role": "system", "content": "Answer based ONLY on the provided context. If the context does not contain the answer, say so."},
@@ -135,7 +135,7 @@ curl -s {litellm_url}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{litellm_model}",
-    "max_tokens": 300,
+    "max_tokens": 1024,
     "temperature": 0.0,
     "messages": [
       {"role": "system", "content": "Answer based ONLY on the provided context."},
