@@ -13,8 +13,7 @@ server requires a workstation with Python 3.10+ and `uv` installed
 A complete MCP server in about 40 lines of Python. It uses inline
 script metadata so `uv run` handles dependencies automatically:
 
-[source,python]
-----
+....
 # /// script
 # requires-python = ">=3.10"
 # dependencies = ["mcp[cli]>=1.0", "httpx"]
@@ -71,7 +70,7 @@ def generate_yaml(description: str) -> str:
 
 if __name__ == "__main__":
     mcp.run()
-----
+....
 
 == How it works
 
@@ -95,16 +94,16 @@ the LiteLLM proxy and extracts the response content.
 
 == Connect to Claude Code
 
-Register the server so Claude Code can discover and call the tools:
+Register the server so Claude Code can discover and call the tools
+(this runs on your workstation, not in the lab terminal):
 
-[source,bash]
-----
+....
 claude mcp add local-llm-tools \
   -e LLM_URL="http://127.0.0.1:4000" \
   -e LLM_KEY="$LITELLM_MASTER_KEY" \
   -e LLM_MODEL="qwen3-coder" \
   -- uv run ~/mcp-llm-tools/server.py
-----
+....
 
 Then in a new Claude Code session, ask it to "use the local LLM to
 explain what a DaemonSet is" -- Claude Code will call your MCP server,
