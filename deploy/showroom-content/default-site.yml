@@ -18,4 +18,3 @@ ui:
   bundle:
     url: https://github.com/rhpds/rhdp_showroom_theme/releases/download/v2.0.2/ui-bundle.zip
     snapshot: true
-  supplemental_files: ./supplemental-ui
